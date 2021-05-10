@@ -28,11 +28,11 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-token="token"
+token="token" #agregar el token del bot generado por botfather
 bot = telepot.Bot(token)
 
-# Define a few command handlers. These usually take the two arguments update and
-# context. Error handlers also receive the raised TelegramError object in error.
+# 
+# 
 
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
@@ -42,15 +42,15 @@ def start(update: Update, context: CallbackContext) -> None:
 def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
     update.message.reply_text('/start ')
-    update.message.reply_text('/windcaptura ')
-    update.message.reply_text('/video ')
-    update.message.reply_text('/sumar ')
-    update.message.reply_text('/dolarareal')
-    update.message.reply_text('/read_webpage')
+    update.message.reply_text('/windcaptura ') #Envia una captura de pantalla del servidor
+    update.message.reply_text('/video ') #Reproduce un video de youtube en VLC player en el servidor
+    update.message.reply_text('/sumar ') #Recibe 2 numero y devuelve la suma.
+    update.message.reply_text('/dolarareal') #Convierte la cantidad de dolares a reales brasileños.
+    update.message.reply_text('/read_webpage') #Lee el codigo fuente de una pagina y guarda en el servidor un archivo de texto con el codigo fuente.
 
 
 def windcaptura(update, context):
-    """Scaptura de pantalla al server y envia."""
+    """Sacaptura de pantalla al server y envia."""
     myScreenshot= pyautogui.screenshot()
     myScreenshot.save(r'/home/windruner/Documents/Windruner_bot/foto.png')
     pic='/home/windruner/Documents/Windruner_bot/foto.png'
@@ -72,15 +72,9 @@ def video(update, context):
     time.sleep(10)
     update.message.reply_text('Done :3')
 
-
-
 def echo(update, context):
     """Echo the user message."""
     update.message.reply_text(update.message.text)
-
-def pizza(update, context):
-    if(update.message.text.upper().find("te quiero") > 0):
-        update.message.reply_text("dame comida")
 
 def dolarareal(update, context):
     c=CurrencyRates()
