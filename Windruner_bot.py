@@ -5,7 +5,9 @@
 # This program is dedicated to the public domain under the CC0 license.
 
 """
+<<<<<<< HEAD
 Bot con varias funciones integradas para hacer algunas cosas en el servidor desde telegram
+=======
 """
 
 import logging
@@ -27,10 +29,11 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-token='Poner token generado en botfather
 
-# Define a few command handlers. These usually take the two arguments update and
-# context. Error handlers also receive the raised TelegramError object in error.
+token='1265297511:AAFeyxtncAXra2-zwt_GY5DOrgMHAGqaXsg'
+
+# 
+# 
 
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
@@ -40,15 +43,15 @@ def start(update: Update, context: CallbackContext) -> None:
 def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command"""
     update.message.reply_text('/start ')
-    update.message.reply_text('/windcaptura ')
-    update.message.reply_text('/video ')
-    update.message.reply_text('/sumar ')
-    update.message.reply_text('/dolarareal')
-    update.message.reply_text('/read_webpage')
+    update.message.reply_text('/windcaptura ') #Envia una captura de pantalla del servidor
+    update.message.reply_text('/video ') #Reproduce un video de youtube en VLC player en el servidor
+    update.message.reply_text('/sumar ') #Recibe 2 numero y devuelve la suma.
+    update.message.reply_text('/dolarareal') #Convierte la cantidad de dolares a reales brasileños.
+    update.message.reply_text('/read_webpage') #Lee el codigo fuente de una pagina y guarda en el servidor un archivo de texto con el codigo fuente.
 
 
 def windcaptura(update, context):
-    """Scaptura de pantalla al server y envia."""
+    """Sacaptura de pantalla al server y envia."""
     myScreenshot= pyautogui.screenshot()
     myScreenshot.save(r'/home/windruner/Documents/Windruner_bot/foto.png')
     pic='/home/windruner/Documents/Windruner_bot/foto.png'
