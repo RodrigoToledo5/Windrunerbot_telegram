@@ -5,21 +5,11 @@
 # This program is dedicated to the public domain under the CC0 license.
 
 """
-Simple Bot to reply to Telegram messages.
-
-First, a few handler functions are defined. Then, those functions are passed to
-the Dispatcher and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
-Usage:
-Basic Echobot example, repeats messages.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
+Bot con varias funciones integradas para hacer algunas cosas en el servidor desde telegram
 """
 
 import logging
 import pyautogui
-import telepot
 import vlc
 import pafy
 import youtube_dl
@@ -37,8 +27,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-token="token"
-bot = telepot.Bot(token)
+token='Poner token generado en botfather
 
 # Define a few command handlers. These usually take the two arguments update and
 # context. Error handlers also receive the raised TelegramError object in error.
@@ -49,7 +38,7 @@ def start(update: Update, context: CallbackContext) -> None:
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
-    """Send a message when the command /help is issued."""
+    """Send a message when the command"""
     update.message.reply_text('/start ')
     update.message.reply_text('/windcaptura ')
     update.message.reply_text('/video ')
@@ -81,15 +70,9 @@ def video(update, context):
     time.sleep(10)
     update.message.reply_text('Done :3')
 
-
-
 def echo(update, context):
     """Echo the user message."""
     update.message.reply_text(update.message.text)
-
-def pizza(update, context):
-    if(update.message.text.upper().find("te quiero") > 0):
-        update.message.reply_text("dame comida")
 
 def dolarareal(update, context):
     c=CurrencyRates()
@@ -107,6 +90,7 @@ def sumar(update,context):
 
     except (ValueError):
         update.message.reply_text("por favor utilice dos numeros")
+
 def read_webpage(update, context):
     try:
         pagina=str(context.args[0])
@@ -114,9 +98,8 @@ def read_webpage(update, context):
         update.message.reply_text('pagina copiada en el servidor :3')
         archivo=open('pagina.txt','w+')
         archivo.write(resp.text)
-        #pic='/home/windruner/Documents/Windruner_bot/foto.png'
-        #enviar='/home/windruner/Documents/Windruner_bot/pagina.txt'
-        #context.bot.send_document(chat_id=update.effective_chat.id,document=resp.text)
+        enviar='/home/windruner/Documents/Windruner_bot/pagina.txt'
+        context.bot.send_document(chat_id=update.effective_chat.id,document=open(enviar,'rb'))
     except (ValueError):
         update.message.reply_text("ponga una direccion correcta")
 
@@ -140,8 +123,6 @@ def main():
     dispatcher.add_handler(CommandHandler("echo", echo))
     dispatcher.add_handler(CommandHandler("dolarareal", dolarareal))
     dispatcher.add_handler(CommandHandler("read_webpage", read_webpage))
-
-
 
     # on noncommand i.e message - echo the message on Telegram
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
