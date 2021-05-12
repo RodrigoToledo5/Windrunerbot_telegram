@@ -18,8 +18,8 @@ import youtube_dl
 import time
 import requests as req
 import datetime
+import multiprocessing
 from forex_python.converter import CurrencyRates
-
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
@@ -31,7 +31,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 token='1265297511:AAFeyxtncAXra2-zwt_GY5DOrgMHAGqaXsg'
-
+count=0
 # 
 # 
 
@@ -48,6 +48,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('/sumar ') #Recibe 2 numero y devuelve la suma.
     update.message.reply_text('/dolarareal') #Convierte la cantidad de dolares a reales brasileños.
     update.message.reply_text('/read_webpage') #Lee el codigo fuente de una pagina y guarda en el servidor un archivo de texto con el codigo fuente.
+    update.message.reply_text('/sistemalineal')
 
 
 def windcaptura(update, context):
@@ -94,6 +95,23 @@ def sumar(update,context):
     except (ValueError):
         update.message.reply_text("por favor utilice dos numeros")
 
+def sistemalineal(update,context):
+    
+     Ecuacion1[0]= int(context.args[0])
+     Ecuacion1[1]= int(context.args[1])
+     Ecuacion1[2]= int(context.args[2])
+
+     Ecuacion2[0]= int(context.args[3])
+     Ecuacion2[1]= int(context.args[4])
+     Ecuacion2[2]= int(context.args[5])
+
+     for i in Ecuacion1:
+          Ecuacion1=Ecuacion2[0]*Ecuacion1
+     for i in Ecuacion2:
+          Ecuacion2=Ecuacion1[0]*Ecuacion2
+     update.message.reply_text("Funciona")
+
+
 def read_webpage(update, context):
     try:
         pagina=str(context.args[0])
@@ -105,7 +123,6 @@ def read_webpage(update, context):
         context.bot.send_document(chat_id=update.effective_chat.id,document=open(enviar,'rb'))
     except (ValueError):
         update.message.reply_text("ponga una direccion correcta")
-
 
 def main():
     """Start the bot."""
@@ -126,6 +143,7 @@ def main():
     dispatcher.add_handler(CommandHandler("echo", echo))
     dispatcher.add_handler(CommandHandler("dolarareal", dolarareal))
     dispatcher.add_handler(CommandHandler("read_webpage", read_webpage))
+    dispatcher.add_handler(CommandHandler("sistemalineal", sistemalineal))
 
     # on noncommand i.e message - echo the message on Telegram
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
