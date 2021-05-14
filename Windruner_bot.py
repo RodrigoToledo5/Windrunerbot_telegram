@@ -53,7 +53,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('/graficar') #grafica una funcion matematica definida dentro de mat
     update.message.reply_text('/google') #crea un html con los atributos de google.com
     update.message.reply_text('/binorg') #hace un request a httpbin con un diccionario establecido.
-
+    update.message.reply_text('/buscarpokemon') #buscar un pokemon en la api https://pokeapi.co/api/v2/
 def google(update, context):
 	url='http://google.com'
 	response=req.get(url)
@@ -77,6 +77,76 @@ def binorg(update, context):
 		origin= response_json['origin']
 	update.message.reply_text('done') 
 	update.message.reply_text(str(origin)) 
+
+def binpost(update, context):
+	url='http://httpbin.org/post'
+	payload={ 'nombre': 'Eduardo', 'curso':'python', 'nivel':'intermedio'}
+	headers={'Content-Type': 'application/json','access-token':'12345'}
+	response=req.post(url,data=json.dumps(payload),headers=headers)
+	if response.status_code ==200:
+		headers_response= response.headers
+		server = headers_response['Server']
+	update.message.reply_text('done') 
+	update.message.reply_text(str(server))
+
+def obtenerimg(update, context):
+	url=str(context.args[0])
+	response = req.get(url,stream=True)# realiza la peticion sin descargar el contentino
+	with open('imagen.jpg','wb') as file:
+		for chunk in response.iter_content(): # descarga el contenido poco a poco
+			file.write(chunk)		
+	response.close()
+	update.message.reply_text('done') 
+# def get_pokemons(url='http://pokeapi.co/api/v2/pokemon-form/', offset=0,update,context):
+# 	args={'offset':offset} if offset else {}
+	
+
+def pokemon(update, context):
+	offset=0
+	args={'offset': offset} if offset else {} 
+	url='http://pokeapi.co/api/v2/pokemon-form/'
+	response = req.get(url, params=args)	# realiza la peticion sin descargar el contentino
+	if response.status_code==200:
+
+		payload=response.json()
+		results=payload.get('results',[]) 
+		if results:
+			for pokemon in results:
+				name=pokemon['name']
+				pokeurl=pokemon['url']
+				update.message.reply_text(name) 
+				update.message.reply_text(pokeurl) 
+
+	update.message.reply_text('done') 
+
+def buscar(nombre,url='http://pokeapi.co/api/v2/pokemon-form/', offset=0):# busca un pokemon que le pasas
+	args={'offset': offset} if offset else {} 	
+	response = req.get(url, params=args)	
+	if response.status_code==200:
+
+		payload=response.json()
+		results=payload.get('results',[]) 
+		if results:
+			for pokemon in results:
+				name=pokemon['name']
+				pokeurl=pokemon['url']
+				if name==nombre:
+					break
+				else:
+					offset=offset+1
+		if offset%20==0:
+			pokeurl=buscar(nombre,offset=offset)
+	return (pokeurl)
+
+def buscarpokemon(update, context):
+	try:	
+		nombre=str(context.args[0])
+		url='http://pokeapi.co/api/v2/pokemon-form/'
+		pokeurl=buscar(nombre)
+		update.message.reply_text(pokeurl) 	
+		update.message.reply_text('done') 
+	except (ValueError):
+        update.message.reply_text("ponga un nombre correcto")
 
 def mat(route):
    
@@ -197,40 +267,44 @@ def read_webpage(update, context):
         update.message.reply_text("ponga una direccion correcta")
 
 def main():
-    """Start the bot."""
-    # Create the Updater and pass it your bot's token.
-    # Make sure to set use_context=True to use the new context based callbacks
-    # Post version 12 this will no longer be necessary
-    updater = Updater(token, use_context=True)
+	"""Start the bot."""
+	# Create the Updater and pass it your bot's token.
+	# Make sure to set use_context=True to use the new context based callbacks
+	# Post version 12 this will no longer be necessary
+	updater = Updater(token, use_context=True)
 
-    # Get the dispatcher to register handlers
-    dispatcher = updater.dispatcher
+	# Get the dispatcher to register handlers
+	dispatcher = updater.dispatcher
 
-    # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help_command))
-    dispatcher.add_handler(CommandHandler("sumar", sumar))
-    dispatcher.add_handler(CommandHandler("windcaptura", windcaptura))
-    dispatcher.add_handler(CommandHandler("video", video))
-    dispatcher.add_handler(CommandHandler("echo", echo))
-    dispatcher.add_handler(CommandHandler("dolarareal", dolarareal))
-    dispatcher.add_handler(CommandHandler("read_webpage", read_webpage))
-    dispatcher.add_handler(CommandHandler("graficar", graficar))
-    dispatcher.add_handler(CommandHandler("google", google))
-    dispatcher.add_handler(CommandHandler("binorg", binorg))
+    	# on different commands - answer in Telegram
+	dispatcher.add_handler(CommandHandler("start", start))
+	dispatcher.add_handler(CommandHandler("help", help_command))
+	dispatcher.add_handler(CommandHandler("sumar", sumar))
+	dispatcher.add_handler(CommandHandler("windcaptura", windcaptura))
+	dispatcher.add_handler(CommandHandler("video", video))
+	dispatcher.add_handler(CommandHandler("echo", echo))
+	dispatcher.add_handler(CommandHandler("dolarareal", dolarareal))
+	dispatcher.add_handler(CommandHandler("read_webpage", read_webpage))
+	dispatcher.add_handler(CommandHandler("graficar", graficar))
+	dispatcher.add_handler(CommandHandler("google", google))
+	dispatcher.add_handler(CommandHandler("binorg", binorg))
+	dispatcher.add_handler(CommandHandler("binpost", binpost))
+	dispatcher.add_handler(CommandHandler("obtenerimg", obtenerimg))
+	dispatcher.add_handler(CommandHandler("pokemon", pokemon))
+	dispatcher.add_handler(CommandHandler("buscarpokemon", buscarpokemon))
 
-    # on noncommand i.e message - echo the message on Telegram
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
+	# on noncommand i.e message - echo the message on Telegram
+	dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
 
-    # Start the Bot
-    updater.start_polling()
+	# Start the Bot
+	updater.start_polling()
 
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
-    updater.idle()
+	# Run the bot until you press Ctrl-C or the process receives SIGINT,
+	# SIGTERM or SIGABRT. This should be used most of the time, since
+	# start_polling() is non-blocking and will stop the bot gracefully.
+	updater.idle()
 
 
 if __name__ == '__main__':
-    main()
+	main()
 
