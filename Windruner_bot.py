@@ -16,6 +16,8 @@ import vlc
 import pafy
 import youtube_dl
 import time
+import pycurl
+from io import BytesIO
 import requests as req
 import datetime
 from multiprocessing import Process, Lock
@@ -54,12 +56,14 @@ def help_command(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('/google') #crea un html con los atributos de google.com
     update.message.reply_text('/binorg') #hace un request a httpbin con un diccionario establecido.
     update.message.reply_text('/buscarpokemon') #buscar un pokemon en la api https://pokeapi.co/api/v2/
+    update.message.reply_text('/cripto') 
+
 def google(update, context):
-	url='http://google.com'
+	url='https://etc.2miners.com/es/account/0x56c5fb2d2162a1a888a888d31236df08371256ec#rewards-tab'
 	response=req.get(url)
 	if response.status_code ==200:
 		content= response.content
-		file=open('google.html','wb')
+		file=open('cripto.html','wb')
 		file.write(content)
 		file.close()
 	update.message.reply_text('done') 
@@ -117,7 +121,7 @@ def pokemon(update, context):
 				update.message.reply_text(name) 
 				update.message.reply_text(pokeurl) 
 
-	update.message.reply_text('done') 
+	update.message.reply_text('done :3') 
 
 def buscar(nombre,url='http://pokeapi.co/api/v2/pokemon-form/', offset=0):# busca un pokemon que le pasas
 	args={'offset': offset} if offset else {} 	
@@ -136,17 +140,49 @@ def buscar(nombre,url='http://pokeapi.co/api/v2/pokemon-form/', offset=0):# busc
 					offset=offset+1
 		if offset%20==0:
 			pokeurl=buscar(nombre,offset=offset)
-	return (pokeurl)
+
+		if offset>898:
+			pokeurl='No se encontro su pokemon'
+
+		return (pokeurl)
+	else:
+		pokeurl='error'
+		return (pokeurl)
+
+def buscarimg(url):# busca un pokemon que le pasas	
+	response = req.get(url)	
+	if response.status_code==200:
+
+		payload=response.json()
+		results=payload.get('sprites') 
+		return results['front_default']
+	else:
+		return 'error'
 
 def buscarpokemon(update, context):
 	try:	
 		nombre=str(context.args[0])
 		url='http://pokeapi.co/api/v2/pokemon-form/'
 		pokeurl=buscar(nombre)
+		urlimg=buscarimg(pokeurl)		
+		update.message.reply_text(urlimg) 
 		update.message.reply_text(pokeurl) 	
-		update.message.reply_text('done') 
+		update.message.reply_text('done :3') 
+
 	except (ValueError):
-        update.message.reply_text("ponga un nombre correcto")
+        	update.message.reply_text("ponga un nombre correcto")
+
+def cripto(update, context):
+	headers={'cache-control': 'no-cache', 'content-length':'0','content-type':'application/json'}
+	url="https://btg.2miners.com/api"
+	response=req.get(url,headers)
+	if response.status_code==200:
+		payload=response.json()
+		results=playload.get('currentHashrate')
+		update.message.reply_text(str(results))
+		update.message.reply_text('done :3')  
+	else :
+		update.message.reply_text(str(response))
 
 def mat(route):
    
@@ -292,6 +328,7 @@ def main():
 	dispatcher.add_handler(CommandHandler("obtenerimg", obtenerimg))
 	dispatcher.add_handler(CommandHandler("pokemon", pokemon))
 	dispatcher.add_handler(CommandHandler("buscarpokemon", buscarpokemon))
+	dispatcher.add_handler(CommandHandler("cripto", cripto))
 
 	# on noncommand i.e message - echo the message on Telegram
 	dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
