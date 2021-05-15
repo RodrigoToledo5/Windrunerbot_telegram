@@ -17,15 +17,17 @@ import pafy
 import youtube_dl
 import time
 import pycurl
+import difflib
 from io import BytesIO
-import requests as req
 import datetime
 from multiprocessing import Process, Lock
 from forex_python.converter import CurrencyRates
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 import matplotlib.pyplot as plt
-from matplotlib.collections import EventCollection
+import matplotlib.patches as mpatches
+import matplotlib.path as mpath
+import requests as req
 import numpy as np
 import json
 
@@ -53,17 +55,18 @@ def help_command(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('/dolarareal') #Convierte la cantidad de dolares a reales brasileños.
     update.message.reply_text('/read_webpage') #Lee el codigo fuente de una pagina y guarda en el servidor un archivo de texto con el codigo fuente.
     update.message.reply_text('/graficar') #grafica una funcion matematica definida dentro de mat
-    update.message.reply_text('/google') #crea un html con los atributos de google.com
+    update.message.reply_text('/poeninja') #crea un html con los atributos de poeninja
     update.message.reply_text('/binorg') #hace un request a httpbin con un diccionario establecido.
     update.message.reply_text('/buscarpokemon') #buscar un pokemon en la api https://pokeapi.co/api/v2/
     update.message.reply_text('/cripto') 
+    update.message.reply_text('/traslate') 
 
-def google(update, context):
-	url='https://etc.2miners.com/es/account/0x56c5fb2d2162a1a888a888d31236df08371256ec#rewards-tab'
+def poeninja(update, context):
+	url='https://poe.ninja/'
 	response=req.get(url)
 	if response.status_code ==200:
 		content= response.content
-		file=open('cripto.html','wb')
+		file=open('poeninja2.html','wb')
 		file.write(content)
 		file.close()
 	update.message.reply_text('done') 
@@ -173,9 +176,9 @@ def buscarpokemon(update, context):
         	update.message.reply_text("ponga un nombre correcto")
 
 def cripto(update, context):
-	headers={'cache-control': 'no-cache', 'content-length':'0','content-type':'application/json'}
-	url="https://btg.2miners.com/api"
-	response=req.get(url,headers)
+	headers={'cache-control': 'no-cache','content-length': 0,'content-type': 'application/json'}
+	url="https://btg.2miners.com/api/accounts/0x56c5fb2d2162a1a888a888d31236df08371256ec"
+	response=req.get(url)
 	if response.status_code==200:
 		payload=response.json()
 		results=playload.get('currentHashrate')
@@ -184,56 +187,62 @@ def cripto(update, context):
 	else :
 		update.message.reply_text(str(response))
 
+def converit(context):
+	convertido=''
+	for i in context.args:
+		convertido=convertido+' '+context.args[i]
+	return convertido
+
+def traslate(update, context):
+	with open('key.txt','r') as file:
+		key=file.read().replace('\n','')
+	url = "https://google-translate1.p.rapidapi.com/language/translate/v2"	
+	archivo=open('traduccion.txt','w+')
+	archivo.write(converit(context))
+	archivo.close()
+	with open('traduccion.txt','r') as file:
+		archivo=file.read().replace(' ','%20')	
+	payload = "q=Hello%2C%20world%2C%20man!&target=es&source=en"
+	headers = {'content-type': "application/x-www-form-urlencoded",'accept-encoding': "application/gzip",'x-rapidapi-key': key,'x-rapidapi-host': "google-translate1.p.rapidapi.com"}
+	response = req.request("POST", url, data=payload, headers=headers)
+	if response.status_code==200:
+		payload=response.json()
+		results=payload.get('data') 
+		traduccion=results['translations']
+		tras=traduccion[0]
+		update.message.reply_text(tras['translatedText'])
+	else:
+		update.message.reply_text('error')
+
 def mat(route):
-   
-   # Fixing random state for reproducibility
-   np.random.seed(19680801)
+	fig, ax = plt.subplots()
 
-   # create random data
-   xdata = np.random.random([2, 10])
+	Path = mpath.Path
+	path_data = [
+	    (Path.MOVETO, (1.58, -2.57)),
+	    (Path.CURVE4, (0.35, -1.1)),
+	    (Path.CURVE4, (-1.75, 2.0)),
+	    (Path.CURVE4, (0.375, 2.0)),
+	    (Path.LINETO, (0.85, 1.15)),
+	    (Path.CURVE4, (2.2, 3.2)),
+	    (Path.CURVE4, (3, 0.05)),
+	    (Path.CURVE4, (2.0, -0.5)),
+	    (Path.CLOSEPOLY, (1.58, -2.57)),
+	    ]
+	codes, verts = zip(*path_data)
+	path = mpath.Path(verts, codes)
+	patch = mpatches.PathPatch(path, facecolor='r', alpha=0.5)
+	ax.add_patch(patch)
 
-   # split the data into two parts
-   xdata1 = xdata[0, :]
-   xdata2 = xdata[1, :]
+	# plot control points and connecting lines
+	x, y = zip(*path.vertices)
+	line, = ax.plot(x, y, 'go-')
 
-   # sort the data so it makes clean curves
-   xdata1.sort()
-   xdata2.sort()
+	ax.grid()
+	ax.axis('equal')
 
-   # create some y data points
-   ydata1 = xdata1 ** 2
-   ydata2 = 1 - xdata2 ** 3
-
-   # plot the data
-   fig = plt.figure()
-   ax = fig.add_subplot(1, 1, 1)
-   ax.plot(xdata1, ydata1, color='tab:blue')
-   ax.plot(xdata2, ydata2, color='tab:orange')
-
-   # create the events marking the x data points
-   xevents1 = EventCollection(xdata1, color='tab:blue', linelength=0.05)
-   xevents2 = EventCollection(xdata2, color='tab:orange', linelength=0.05)
-
-   # create the events marking the y data points
-   yevents1 = EventCollection(ydata1, color='tab:blue', linelength=0.05,
-                           orientation='vertical')
-   yevents2 = EventCollection(ydata2, color='tab:orange', linelength=0.05,
-                           orientation='vertical')
-
-   # add the events to the axis
-   ax.add_collection(xevents1)
-   ax.add_collection(xevents2)
-   ax.add_collection(yevents1)
-   ax.add_collection(yevents2)
-
-   # set the limits
-   ax.set_xlim([0, 1])
-   ax.set_ylim([0, 1])
-
-   ax.set_title('line plot with data points')
-
-   # display the plot
-   plt.savefig(route)
+	# display the plot
+	plt.savefig(route)
 
 def graficar(update, context):
     """Sacaptura de pantalla al server y envia."""
@@ -322,13 +331,14 @@ def main():
 	dispatcher.add_handler(CommandHandler("dolarareal", dolarareal))
 	dispatcher.add_handler(CommandHandler("read_webpage", read_webpage))
 	dispatcher.add_handler(CommandHandler("graficar", graficar))
-	dispatcher.add_handler(CommandHandler("google", google))
+	dispatcher.add_handler(CommandHandler("poeninja", poeninja))
 	dispatcher.add_handler(CommandHandler("binorg", binorg))
 	dispatcher.add_handler(CommandHandler("binpost", binpost))
 	dispatcher.add_handler(CommandHandler("obtenerimg", obtenerimg))
 	dispatcher.add_handler(CommandHandler("pokemon", pokemon))
 	dispatcher.add_handler(CommandHandler("buscarpokemon", buscarpokemon))
 	dispatcher.add_handler(CommandHandler("cripto", cripto))
+	dispatcher.add_handler(CommandHandler("traslate", traslate))
 
 	# on noncommand i.e message - echo the message on Telegram
 	dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
