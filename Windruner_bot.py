@@ -30,6 +30,7 @@ import matplotlib.path as mpath
 import requests as req
 import numpy as np
 import json
+from pprint import pprint 
 
 # Enable logging
 logging.basicConfig(
@@ -55,21 +56,50 @@ def help_command(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('/dolarareal') #Convierte la cantidad de dolares a reales brasileños.
     update.message.reply_text('/read_webpage') #Lee el codigo fuente de una pagina y guarda en el servidor un archivo de texto con el codigo fuente.
     update.message.reply_text('/graficar') #grafica una funcion matematica definida dentro de mat
-    update.message.reply_text('/poeninja') #crea un html con los atributos de poeninja
+    update.message.reply_text('/google') #crea un html con los atributos de poeninja
     update.message.reply_text('/binorg') #hace un request a httpbin con un diccionario establecido.
     update.message.reply_text('/buscarpokemon') #buscar un pokemon en la api https://pokeapi.co/api/v2/
     update.message.reply_text('/cripto') 
     update.message.reply_text('/traslate') 
 
-def poeninja(update, context):
-	url='https://poe.ninja/'
+def google(update, context):
+	url='https://google.com'
 	response=req.get(url)
 	if response.status_code ==200:
-		content= response.content
-		file=open('poeninja2.html','wb')
+		content=response.content
+		file=open('google.html','wb')
 		file.write(content)
 		file.close()
 	update.message.reply_text('done') 
+
+def transform_text(lines):
+	modified_lines=lines
+	return modified_lines
+
+def poeninja(update, context):
+	url='https://poe.ninja/api/data/currencyoverview?league=Ultimatum&type=Currency'
+	response=req.get(url)
+	if response.status_code ==200:
+		content=response.content
+		response_json=response.json()
+		lines=response_json['lines']
+		update.message.reply_text('Precio en poe ninja de la currency rate')
+		for currency in lines:		
+			update.message.reply_text(currency['currencyTypeName']+' '+str(currency['chaosEquivalent'])+' Chaos')			
+	update.message.reply_text('Done :3')
+
+def poeninja_ex(update, context):
+	url='https://poe.ninja/api/data/currencyoverview?league=Ultimatum&type=Currency'
+	response=req.get(url)
+	if response.status_code ==200:
+		content=response.content
+		response_json=response.json()
+		lines=response_json['lines']
+		update.message.reply_text('Precio')
+		for currency in lines:		
+			if currency['currencyTypeName']=='Exalted Orb':
+				update.message.reply_text(currency['currencyTypeName']+' '+str(currency['chaosEquivalent'])+' Chaos')
+	update.message.reply_text('Done :3')
 
 def binorg(update, context):
 	url='http://httpbin.org/get'
@@ -189,8 +219,9 @@ def cripto(update, context):
 
 def converit(context):
 	convertido=''
-	for i in context.args:
-		convertido=convertido+' '+context.args[i]
+	frase=context.args
+	for x in frase:
+		convertido=convertido+' '+str(frase[0])
 	return convertido
 
 def traslate(update, context):
@@ -199,10 +230,9 @@ def traslate(update, context):
 	url = "https://google-translate1.p.rapidapi.com/language/translate/v2"	
 	archivo=open('traduccion.txt','w+')
 	archivo.write(converit(context))
-	archivo.close()
 	with open('traduccion.txt','r') as file:
-		archivo=file.read().replace(' ','%20')	
-	payload = "q=Hello%2C%20world%2C%20man!&target=es&source=en"
+		arch=file.read().replace(' ','%20')
+	payload = "q=Hello%2C%20world!&target=es&source=en"
 	headers = {'content-type': "application/x-www-form-urlencoded",'accept-encoding': "application/gzip",'x-rapidapi-key': key,'x-rapidapi-host': "google-translate1.p.rapidapi.com"}
 	response = req.request("POST", url, data=payload, headers=headers)
 	if response.status_code==200:
@@ -212,7 +242,7 @@ def traslate(update, context):
 		tras=traduccion[0]
 		update.message.reply_text(tras['translatedText'])
 	else:
-		update.message.reply_text('error')
+		update.message.reply_text('error'+' '+str(response.status_code))
 
 def mat(route):
 	fig, ax = plt.subplots()
@@ -323,6 +353,8 @@ def main():
 
     	# on different commands - answer in Telegram
 	dispatcher.add_handler(CommandHandler("start", start))
+	dispatcher.add_handler(CommandHandler("poeninja", poeninja))
+	dispatcher.add_handler(CommandHandler("poeninja_ex", poeninja_ex))
 	dispatcher.add_handler(CommandHandler("help", help_command))
 	dispatcher.add_handler(CommandHandler("sumar", sumar))
 	dispatcher.add_handler(CommandHandler("windcaptura", windcaptura))
@@ -331,7 +363,7 @@ def main():
 	dispatcher.add_handler(CommandHandler("dolarareal", dolarareal))
 	dispatcher.add_handler(CommandHandler("read_webpage", read_webpage))
 	dispatcher.add_handler(CommandHandler("graficar", graficar))
-	dispatcher.add_handler(CommandHandler("poeninja", poeninja))
+	dispatcher.add_handler(CommandHandler("google", google))
 	dispatcher.add_handler(CommandHandler("binorg", binorg))
 	dispatcher.add_handler(CommandHandler("binpost", binpost))
 	dispatcher.add_handler(CommandHandler("obtenerimg", obtenerimg))
