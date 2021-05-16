@@ -22,8 +22,8 @@ from io import BytesIO
 import datetime
 from multiprocessing import Process, Lock
 from forex_python.converter import CurrencyRates
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext,CallbackQueryHandler
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.path as mpath
@@ -43,9 +43,44 @@ with open('token.txt','r') as file:
 # 
 # 
 
-def start(update: Update, context: CallbackContext) -> None:
-    """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi :3!')
+def poeninja(update, context):
+	keyboard = [
+	[
+		InlineKeyboardButton("Exalted en caos", callback_data='1'),
+		InlineKeyboardButton("Toda la currency en caos", callback_data='2'),
+	],
+	[
+		InlineKeyboardButton("Armas", callback_data='3'),
+		InlineKeyboardButton("Armaduras", callback_data='4'),
+	],
+	[
+		InlineKeyboardButton("Cartas", callback_data='5'),
+		InlineKeyboardButton("Accesorios", callback_data='6'),
+	],
+	]
+
+	reply_markup = InlineKeyboardMarkup(keyboard)
+
+	update.message.reply_text('Que precios?:', reply_markup=reply_markup)
+
+def button(update, context):
+	query = update.callback_query
+	# CallbackQueries need to be answered, even if no notification to the user is needed
+	# Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+	query.answer()
+	query.edit_message_text('Ejecutando')
+	if query.data=='1':
+		poeninja_ex(query,context)
+	if query.data=='2':
+		poeninja_currency(query,context)
+	if query.data=='3':
+		poeninja_armas(query, context)	
+	if query.data=='4':
+		poeninja_armaduras(query, context)
+	if query.data=='5':
+		poeninja_cartas(query, context)
+	if query.data=='6':
+		poeninja_accesorios(query, context)
 
 def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command"""
@@ -76,7 +111,7 @@ def transform_text(lines):
 	modified_lines=lines
 	return modified_lines
 
-def poeninja(update, context):
+def poeninja_currency(update, context):
 	url='https://poe.ninja/api/data/currencyoverview?league=Ultimatum&type=Currency'
 	response=req.get(url)
 	if response.status_code ==200:
@@ -86,6 +121,58 @@ def poeninja(update, context):
 		update.message.reply_text('Precio en poe ninja de la currency rate')
 		for currency in lines:		
 			update.message.reply_text(currency['currencyTypeName']+' '+str(currency['chaosEquivalent'])+' Chaos')			
+	update.message.reply_text('Done :3')
+
+def poeninja_armas(update, context):
+	url='https://poe.ninja/api/data/itemoverview?league=Ultimatum&type=UniqueWeapon'
+	response=req.get(url)
+	if response.status_code ==200:
+		content=response.content
+		response_json=response.json()
+		lines=response_json['lines']
+		update.message.reply_text('Precio en poe ninja')
+		for item in lines:		
+			if item['exaltedValue']>=1:
+				update.message.reply_text(item['name']+' '+str(item['exaltedValue'])+' EX')			
+	update.message.reply_text('Done :3')
+
+def poeninja_armaduras(update, context):
+	url='https://poe.ninja/api/data/itemoverview?league=Ultimatum&type=UniqueArmour'
+	response=req.get(url)
+	if response.status_code ==200:
+		content=response.content
+		response_json=response.json()
+		lines=response_json['lines']
+		update.message.reply_text('Precio en poe ninja')
+		for item in lines:		
+			if item['exaltedValue']>=1:
+				update.message.reply_text(item['name']+' '+str(item['exaltedValue'])+' EX')			
+	update.message.reply_text('Done :3')
+
+def poeninja_cartas(update, context):
+	url='https://poe.ninja/api/data/itemoverview?league=Ultimatum&type=DivinationCard'
+	response=req.get(url)
+	if response.status_code ==200:
+		content=response.content
+		response_json=response.json()
+		lines=response_json['lines']
+		update.message.reply_text('Precio en poe ninja')
+		for item in lines:		
+			if item['exaltedValue']>=1:
+				update.message.reply_text(item['name']+' '+str(item['exaltedValue'])+' EX')			
+	update.message.reply_text('Done :3')
+
+def poeninja_accesorios(update, context):
+	url='https://poe.ninja/api/data/itemoverview?league=Ultimatum&type=UniqueAccessory'
+	response=req.get(url)
+	if response.status_code ==200:
+		content=response.content
+		response_json=response.json()
+		lines=response_json['lines']
+		update.message.reply_text('Precio en poe ninja')
+		for item in lines:		
+			if item['exaltedValue']>=1:
+				update.message.reply_text(item['name']+' '+str(item['exaltedValue'])+' EX')			
 	update.message.reply_text('Done :3')
 
 def poeninja_ex(update, context):
@@ -352,10 +439,8 @@ def main():
 	dispatcher = updater.dispatcher
 
     	# on different commands - answer in Telegram
-	dispatcher.add_handler(CommandHandler("start", start))
-	dispatcher.add_handler(CommandHandler("poeninja", poeninja))
-	dispatcher.add_handler(CommandHandler("poeninja_ex", poeninja_ex))
 	dispatcher.add_handler(CommandHandler("help", help_command))
+	dispatcher.add_handler(CommandHandler("poeninja", poeninja))
 	dispatcher.add_handler(CommandHandler("sumar", sumar))
 	dispatcher.add_handler(CommandHandler("windcaptura", windcaptura))
 	dispatcher.add_handler(CommandHandler("video", video))
@@ -371,6 +456,7 @@ def main():
 	dispatcher.add_handler(CommandHandler("buscarpokemon", buscarpokemon))
 	dispatcher.add_handler(CommandHandler("cripto", cripto))
 	dispatcher.add_handler(CommandHandler("traslate", traslate))
+	dispatcher.add_handler(CallbackQueryHandler(button))
 
 	# on noncommand i.e message - echo the message on Telegram
 	dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
